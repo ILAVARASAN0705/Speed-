@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Internet Speed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(120deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 50px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        .sub-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #ffcc00;
+            color: black;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e6b800;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: #ffcc00;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .result {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        .emoji-feedback {
+            font-size: 24px;
+            margin-top: 10px;
+            transition: opacity 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 How Fast Is Your Internet?</h1>
+        <p class="sub-text">Run a quick test and check your speed now!</p>
+        
+        <button id="startTest" onclick="startSpeedTest()">▶ Start Test</button>
+        
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+
+        <div class="result">
+            <p id="download-speed">Download: -- Mbps</p>
+            <p id="upload-speed">Upload: -- Mbps</p>
+        </div>
+
+        <div class="emoji-feedback">🔍 Checking speed...</div>
+    </div>
+
+    <script>
+        async function startSpeedTest() {
+            let progressBar = document.querySelector(".progress");
+            let emojiFeedback = document.querySelector(".emoji-feedback");
+            let downloadSpeedElement = document.getElementById("download-speed");
+            let uploadSpeedElement = document.getElementById("upload-speed");
+
+            document.getElementById("startTest").disabled = true;
+            emojiFeedback.innerText = "⏳ Testing in progress...";
+            progressBar.style.width = "0%";
+
+            let fakeProgress = 0;
+            let progressInterval = setInterval(() => {
+                fakeProgress += Math.random() * 10;
+                progressBar.style.width = fakeProgress + "%";
+                if (fakeProgress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 500);
+
+            let downloadSpeed = await testDownloadSpeed();
+            let uploadSpeed = await testUploadSpeed();
+
+            clearInterval(progressInterval);
+            progressBar.style.width = "100%";
+            emojiFeedback.innerText = downloadSpeed > 50 ? "🚀 Super Fast!" : "📶 Could Be Faster!";
+
+            let currentDownload = 0;
+            let downloadInterval = setInterval(() => {
+                currentDownload += Math.random() * 5;
+                if (currentDownload >= downloadSpeed) {
+                    currentDownload = downloadSpeed;
+                    clearInterval(downloadInterval);
+                }
+                downloadSpeedElement.innerText = `Download: ${currentDownload.toFixed(2)} Mbps`;
+            }, 200);
+
+            let currentUpload = 0;
+            let uploadInterval = setInterval(() => {
+                currentUpload += Math.random() * 2;
+                if (currentUpload >= uploadSpeed) {
+                    currentUpload = uploadSpeed;
+                    clearInterval(uploadInterval);
+                }
+                uploadSpeedElement.innerText = `Upload: ${currentUpload.toFixed(2)} Mbps`;
+            }, 200);
+
+            document.getElementById("startTest").disabled = false;
+        }
+
+        async function testDownloadSpeed() {
+            let fileSize = 2 * 1024 * 1024;
+            let testUrl = "https://via.placeholder.com/1024x1024.png";
+            let startTime = Date.now();
+
+            try {
+                let response = await fetch(testUrl, { method: "GET", cache: "no-cache" });
+                await response.blob();
+                let duration = (Date.now() - startTime) / 1000;
+                return (fileSize * 8) / (duration * 1024 * 1024);
+            } catch (error) {
+                return 0;
+            }
+        }
+
+        async function testUploadSpeed() {
+            let data = new Blob([new ArrayBuffer(1024 * 1024)]);
+            let startTime = Date.now();
+
+            try {
+                await fetch("https://postman-echo.com/post", { 
+                    method: "POST", 
+                    body: data 
+                });
+                let duration = (Date.now() - startTime) / 1000;
+                return (1 * 8) / duration;
+            } catch (error) {
+                return 0;
+            }
+        }
+    </script>
+</body>
+</html>
